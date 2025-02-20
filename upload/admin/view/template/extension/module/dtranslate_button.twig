@@ -1,0 +1,30 @@
+{% if status %}
+<div class="row dtranslate">
+	<div class="col-sm-12">
+		<div class="btn-group pull-right">
+			<button type="button" class="btn btn-primary dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">{{ button_translate }} <span class="caret"/>
+			</button>
+			<ul class="dropdown-menu dropdown-menu-sm dropdown-menu-right" data-language-id="{{ language_id }}">
+				{% if translate_language.store %}
+				{% for store_language in translate_language.store %}
+				<li>
+					<a href="#" onclick="dtranslate($(this), '{{ store_language.code }}'); return false;">
+						<i class="fa fa-exchange" aria-hidden="true"/> {{ store_language.name }}
+					</a>
+				</li>
+				{% endfor %}
+				<li role="separator" class="divider"/>
+				{% endif %}
+				<li><a href="#" onclick="return false;">{{ text_other_language }}</a></li>
+				{% for store_language in translate_language.other %}
+				<li>
+					<a href="#" onclick="dtranslate($(this), '{{ store_language.code }}'); return false;">
+						<i class="fa fa-link" aria-hidden="true"/> {{ store_language.name }}
+					</a>
+				</li>
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
+</div>
+{% endif %}

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+	<name>Перекладач Deepl Api</name>
+	<code>dtranslate</code>
+	<version>1.0</version>
+	<author>bogdan281989@gmail.com</author>
+	<link>https://opencart.kyiv.ua/</link>
+  	<file path="admin/view/template/catalog/product_form.twig">
+        <operation>
+            <search><![CDATA[$('.date').datetimepicker({]]></search>
+            <add position="before"><![CDATA[
+                $(document).ready(function() {
+                    $('#tab-general .tab-pane').each(function(index, element) {
+
+                        var htmlText;
+                        var language_id = $(element).attr('id').match(/\d+/)[0];
+
+                        $.ajax({
+                            url: 'index.php?route=extension/module/dtranslate/getButtonTranslate&user_token={{ user_token }}&language_id=' + language_id,
+                            dataType: 'html',
+                            success: function(htmlText) {
+                                $(element).prepend(htmlText);
+                            },
+                            error: function(xhr, ajaxOptions, thrownError) {
+                                alert(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
+                            }
+                        });	
+                    });	
+                });
+
+                function dtranslate(obj, code) {
+
+                    let tab = $(obj).parents('.tab-pane');
+                    let language_id = tab.attr('id').match(/\d+/)[0];
+                    let text_name = tab.find('input[name="product_description[' + language_id + '][name]"]').val();
+                    let text_description = tab.find('textarea[name="product_description[' + language_id + '][description]"]').val();
+
+                    $.ajax({
+                        url: 'index.php?route=extension/module/dtranslate/getTranslate&user_token={{ user_token }}',
+                        data: 'code=' + code + '&text_name=' + encodeURIComponent(text_name) + '&text_description=' + encodeURIComponent(text_description),
+                        type: 'post',
+                        dataType: 'json',
+                        beforeSend: function() {
+                            $(obj).parents('ul.dropdown-menu').prev('button').button('loading');
+                        },
+                        complete: function() {
+                            $(obj).parents('ul.dropdown-menu').prev('button').button('reset');
+                        },
+                        success: function(json) {
+                            $('.alert').remove();
+
+                            if(json['error']) {					
+                                tab.find('.dtranslate>.col-sm-12').prepend('<div class="alert alert-danger">' + json['error'] + '</div>');
+                            }
+
+                            if(json['success']) {
+
+                                tab.find('input[name="product_description[' + language_id + '][name]"]').val(parseHtml(json['text_name']['success']));
+
+                                tab.find('textarea[name="product_description[' + language_id + '][description]"]').summernote('code', parseHtml(json['text_description']['success']));
+
+                                tab.find('.dtranslate>.col-sm-12').prepend('<div class="alert alert-success dtranslate-alert">' + json['success'] + '</div>');
+
+                                setTimeout(function () {
+                                    $('.dtranslate-alert').fadeOut('800');
+                                }, 3000);
+                            }	
+                        }
+                    });
+                }
+
+                function parseHtml(text) {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    const html = doc.body.textContent;
+
+                    return html;
+                }
+            ]]></add>
+        </operation>
+    </file>
+</modification>
